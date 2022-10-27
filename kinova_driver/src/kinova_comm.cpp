@@ -75,18 +75,19 @@ KinovaComm::KinovaComm(const ros::NodeHandle& node_handle,
     //Set ethernet parameters
     EthernetCommConfig ethernet_settings;
     std::string local_IP,subnet_mask;
-    int local_cmd_port,local_bcast_port;
+    int local_cmd_port,local_bcast_port,robot_port = 55000;
     node_handle.getParam("ethernet/local_machine_IP", local_IP);
     node_handle.getParam("ethernet/subnet_mask", subnet_mask);
     node_handle.getParam("ethernet/local_cmd_port", local_cmd_port);
     node_handle.getParam("ethernet/local_broadcast_port", local_bcast_port);
+    node_handle.getParam("ethernet/robot_port", robot_port);
     ethernet_settings.localCmdport = local_cmd_port;
     ethernet_settings.localBcastPort = local_bcast_port;
     ethernet_settings.localIpAddress = inet_addr(local_IP.c_str());
     ethernet_settings.subnetMask = inet_addr(subnet_mask.c_str());
     ethernet_settings.rxTimeOutInMs = 1000;
     ethernet_settings.robotIpAddress = inet_addr("192.168.100.11");
-    ethernet_settings.robotPort = 55000;
+    ethernet_settings.robotPort = robot_port;
 
     // Get the serial number parameter for the arm we wish to connect to
     std::string serial_number = "";
@@ -131,8 +132,10 @@ KinovaComm::KinovaComm(const ros::NodeHandle& node_handle,
     }
 
     bool found_arm = false;
+    ROS_INFO_STREAM(devices_count << " devices found");
     for (int device_i = 0; device_i < devices_count; device_i++)
     {
+        ROS_INFO_STREAM("Device " << device_i << " with serial_number " << devices_list_[device_i].SerialNumber);
         // If no device is specified, just use the first available device
         if (serial_number == "" || serial_number == "not_set" ||
             std::strcmp(serial_number.c_str(), devices_list_[device_i].SerialNumber) == 0)

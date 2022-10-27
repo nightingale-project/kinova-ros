@@ -758,10 +758,14 @@ void KinovaArm::publishFingerPosition(void)
 
 void KinovaArm::statusTimer(const ros::TimerEvent&)
 {
-    publishJointAngles();
-    publishToolPosition();
-    publishToolWrench();
-    publishFingerPosition();
+    try {
+        publishJointAngles();
+        publishToolPosition();
+        publishToolWrench();
+        publishFingerPosition();
+    } catch (std::exception const & ex) {
+        ROS_INFO_STREAM("statusTimer() exception: " << ex.what());
+    }
 }
 
 }  // namespace kinova
