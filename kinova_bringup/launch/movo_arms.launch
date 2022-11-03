@@ -24,15 +24,49 @@
     <param name="use_jaco_v1_fingers" value="$(arg use_jaco_v1_fingers)" />   
     <param name="status_interval_seconds" value="$(arg feedback_publish_rate)" />
   </node>
+  
+  <!-- Right Arm Action Server -->
+  <node name="j2s7s300_right_joint_trajectory_action_server" 
+  	pkg="kinova_driver" 
+  	type="joint_trajectory_action_server" 
+  	output="screen" 
+  	respawn="false" 
+  	args="j2s7s300_right_driver"/>
+  	
+  <!-- Right Gripper Action Server -->
+  <node name="j2s7s300_right_gripper_command_action_server" 
+  	pkg="kinova_driver" 
+  	type="gripper_command_action_server" 
+  	output="screen" 
+  	respawn="false" 
+  	args="j2s7s300_right"/>
+  
+  <!-- Left Arm Action Server -->
+  <node name="j2s7s300_left_joint_trajectory_action_server" 
+  	pkg="kinova_driver" 
+  	type="joint_trajectory_action_server" 
+  	output="screen" 
+  	respawn="false" 
+  	args="j2s7s300_left_driver"/>
+
+  	
+  <!-- Left Gripper Action Server -->
+  <node name="j2s7s300_left_gripper_command_action_server" 
+  	pkg="kinova_driver" 
+  	type="gripper_command_action_server" 
+  	output="screen" 
+  	respawn="false" 
+  	args="j2s7s300_left"/>
+
 
   <group if="$(arg use_urdf)">
     <param name="robot_description" command="$(find xacro)/xacro '$(find kinova_description)/urdf/movo_arms.xacro'" />
-    <node name="right_state_publisher"
+    <node name="j2s7s300_right_state_publisher"
            pkg="robot_state_publisher"
           type="robot_state_publisher">
       <remap from="joint_states" to="/j2s7s300_right_driver/out/joint_state"/>
     </node>
-    <node name="left_state_publisher"
+    <node name="j2s7s300_left_state_publisher"
            pkg="robot_state_publisher"
           type="robot_state_publisher">
       <remap from="joint_states" to="/j2s7s300_left_driver/out/joint_state"/>

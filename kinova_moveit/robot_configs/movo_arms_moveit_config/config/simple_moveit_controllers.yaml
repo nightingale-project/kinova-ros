@@ -1,5 +1,5 @@
 controller_list:
-  - name: right_arm_controller
+  - name: j2s7s300_right_driver
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: True
@@ -11,7 +11,7 @@ controller_list:
       - right_joint_5
       - right_joint_6
       - right_joint_7
-  - name: left_arm_controller
+  - name: j2s7s300_left_driver
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: True
@@ -23,16 +23,16 @@ controller_list:
       - left_joint_5
       - left_joint_6
       - left_joint_7
-  - name: right_gripper_controller
-    action_ns: gripper_action
+  - name: j2s7s300_right_gripper
+    action_ns: gripper_command
     type: GripperCommand
     default: True
     joints:
       - right_joint_finger_1
       - right_joint_finger_2
       - right_joint_finger_3
-  - name: left_gripper_controller
-    action_ns: gripper_action
+  - name: j2s7s300_left_gripper
+    action_ns: gripper_command
     type: GripperCommand
     default: True
     joints:

@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Benjamin Schnapp
     author_email: bdschnap@uwaterloo.ca
-    generated_timestamp: 1666899245
+    generated_timestamp: 1667484349
