@@ -249,70 +249,75 @@ void JointTrajectoryController::update_state()
     previous_pub_ = ros::Time::now();
     while (nh_.ok())
     {
-        // check if terminate command is sent from main thread
-        {
-            boost::mutex::scoped_lock terminate_lock(terminate_thread_mutex_);
-            if (terminate_thread_)
+        try {
+            // check if terminate command is sent from main thread
             {
-                break;
+                boost::mutex::scoped_lock terminate_lock(terminate_thread_mutex_);
+                if (terminate_thread_)
+                {
+                    break;
+                }
             }
+
+            traj_feedback_msg_.header.frame_id = traj_frame_id_;
+            traj_feedback_msg_.header.stamp = ros::Time::now();
+            KinovaAngles current_joint_angles;
+            KinovaAngles current_joint_velocity;
+            AngularPosition current_joint_command;
+
+            kinova_comm_.getAngularCommand(current_joint_command);
+            kinova_comm_.getJointAngles(current_joint_angles);
+            kinova_comm_.getJointVelocities(current_joint_velocity);
+
+
+            traj_feedback_msg_.desired.positions[0] = current_joint_command.Actuators.Actuator1 *M_PI/180;
+            traj_feedback_msg_.desired.positions[1] = current_joint_command.Actuators.Actuator2 *M_PI/180;
+            traj_feedback_msg_.desired.positions[2] = current_joint_command.Actuators.Actuator3 *M_PI/180;
+            traj_feedback_msg_.desired.positions[3] = current_joint_command.Actuators.Actuator4 *M_PI/180;
+            if (number_joint_>=6)
+            {
+                traj_feedback_msg_.desired.positions[4] = current_joint_command.Actuators.Actuator5 *M_PI/180;
+                traj_feedback_msg_.desired.positions[5] = current_joint_command.Actuators.Actuator6 *M_PI/180;
+                if (number_joint_==7)
+                    traj_feedback_msg_.desired.positions[6] = current_joint_command.Actuators.Actuator7 *M_PI/180;
+            }
+
+            traj_feedback_msg_.actual.positions[0] = current_joint_angles.Actuator1 *M_PI/180;
+            traj_feedback_msg_.actual.positions[1] = current_joint_angles.Actuator2 *M_PI/180;
+            traj_feedback_msg_.actual.positions[2] = current_joint_angles.Actuator3 *M_PI/180;
+            traj_feedback_msg_.actual.positions[3] = current_joint_angles.Actuator4 *M_PI/180;
+            if (number_joint_>=6)
+            {
+                traj_feedback_msg_.actual.positions[4] = current_joint_angles.Actuator5 *M_PI/180;
+                traj_feedback_msg_.actual.positions[5] = current_joint_angles.Actuator6 *M_PI/180;
+                if (number_joint_==7)
+                    traj_feedback_msg_.actual.positions[6] = current_joint_angles.Actuator7 *M_PI/180;
+            }
+
+            traj_feedback_msg_.actual.velocities[0] = current_joint_velocity.Actuator1 *M_PI/180;
+            traj_feedback_msg_.actual.velocities[1] = current_joint_velocity.Actuator2 *M_PI/180;
+            traj_feedback_msg_.actual.velocities[2] = current_joint_velocity.Actuator3 *M_PI/180;
+            traj_feedback_msg_.actual.velocities[3] = current_joint_velocity.Actuator4 *M_PI/180;
+            if (number_joint_>=6)
+            {
+                traj_feedback_msg_.actual.velocities[4] = current_joint_velocity.Actuator5 *M_PI/180;
+                traj_feedback_msg_.actual.velocities[5] = current_joint_velocity.Actuator6 *M_PI/180;
+                if (number_joint_==7)
+                    traj_feedback_msg_.actual.velocities[6] = current_joint_velocity.Actuator7 *M_PI/180;
+            }
+
+            for (size_t j = 0; j<joint_names_.size(); j++)
+            {
+                traj_feedback_msg_.error.positions[j] = traj_feedback_msg_.actual.positions[j] - traj_feedback_msg_.desired.positions[j];
+            }
+
+            //        ROS_WARN_STREAM("I'm publishing after second: " << (ros::Time::now() - previous_pub_).toSec());
+            pub_joint_feedback_.publish(traj_feedback_msg_);
+            previous_pub_ = ros::Time::now();
+        } catch ( std::exception const & ex ) {
+            ROS_INFO_STREAM("Exception in update_state(): " << ex.what());
+            
         }
-
-        traj_feedback_msg_.header.frame_id = traj_frame_id_;
-        traj_feedback_msg_.header.stamp = ros::Time::now();
-        KinovaAngles current_joint_angles;
-        KinovaAngles current_joint_velocity;
-        AngularPosition current_joint_command;
-
-        kinova_comm_.getAngularCommand(current_joint_command);
-        kinova_comm_.getJointAngles(current_joint_angles);
-        kinova_comm_.getJointVelocities(current_joint_velocity);
-
-
-        traj_feedback_msg_.desired.positions[0] = current_joint_command.Actuators.Actuator1 *M_PI/180;
-        traj_feedback_msg_.desired.positions[1] = current_joint_command.Actuators.Actuator2 *M_PI/180;
-        traj_feedback_msg_.desired.positions[2] = current_joint_command.Actuators.Actuator3 *M_PI/180;
-        traj_feedback_msg_.desired.positions[3] = current_joint_command.Actuators.Actuator4 *M_PI/180;
-        if (number_joint_>=6)
-        {
-            traj_feedback_msg_.desired.positions[4] = current_joint_command.Actuators.Actuator5 *M_PI/180;
-            traj_feedback_msg_.desired.positions[5] = current_joint_command.Actuators.Actuator6 *M_PI/180;
-            if (number_joint_==7)
-                traj_feedback_msg_.desired.positions[6] = current_joint_command.Actuators.Actuator7 *M_PI/180;
-        }
-
-        traj_feedback_msg_.actual.positions[0] = current_joint_angles.Actuator1 *M_PI/180;
-        traj_feedback_msg_.actual.positions[1] = current_joint_angles.Actuator2 *M_PI/180;
-        traj_feedback_msg_.actual.positions[2] = current_joint_angles.Actuator3 *M_PI/180;
-        traj_feedback_msg_.actual.positions[3] = current_joint_angles.Actuator4 *M_PI/180;
-        if (number_joint_>=6)
-        {
-            traj_feedback_msg_.actual.positions[4] = current_joint_angles.Actuator5 *M_PI/180;
-            traj_feedback_msg_.actual.positions[5] = current_joint_angles.Actuator6 *M_PI/180;
-            if (number_joint_==7)
-                traj_feedback_msg_.actual.positions[6] = current_joint_angles.Actuator7 *M_PI/180;
-        }
-
-        traj_feedback_msg_.actual.velocities[0] = current_joint_velocity.Actuator1 *M_PI/180;
-        traj_feedback_msg_.actual.velocities[1] = current_joint_velocity.Actuator2 *M_PI/180;
-        traj_feedback_msg_.actual.velocities[2] = current_joint_velocity.Actuator3 *M_PI/180;
-        traj_feedback_msg_.actual.velocities[3] = current_joint_velocity.Actuator4 *M_PI/180;
-        if (number_joint_>=6)
-        {
-            traj_feedback_msg_.actual.velocities[4] = current_joint_velocity.Actuator5 *M_PI/180;
-            traj_feedback_msg_.actual.velocities[5] = current_joint_velocity.Actuator6 *M_PI/180;
-            if (number_joint_==7)
-                traj_feedback_msg_.actual.velocities[6] = current_joint_velocity.Actuator7 *M_PI/180;
-        }
-
-        for (size_t j = 0; j<joint_names_.size(); j++)
-        {
-            traj_feedback_msg_.error.positions[j] = traj_feedback_msg_.actual.positions[j] - traj_feedback_msg_.desired.positions[j];
-        }
-
-        //        ROS_WARN_STREAM("I'm publishing after second: " << (ros::Time::now() - previous_pub_).toSec());
-        pub_joint_feedback_.publish(traj_feedback_msg_);
-        previous_pub_ = ros::Time::now();
         update_rate.sleep();
     }
     //ROS_DEBUG_STREAM_ONCE("Get out: " << __PRETTY_FUNCTION__);
